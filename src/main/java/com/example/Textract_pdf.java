@@ -321,34 +321,31 @@ public class Textract_pdf {
 
                 for (Map.Entry<String, Block> itr : tableMap.entrySet()) {
                     if (itr.getValue().getPage() == pageNo) {
-                        int rowNo = 1;
+                        int rowNo = 0;
                         Element table = document.createElement("table");
                         page.appendChild(table);
                         Attr id = document.createAttribute("id");
                         id.setValue(itr.getKey());
                         table.setAttributeNode(id);
 
-                        Element row = document.createElement("row");
-                        table.appendChild(row);
-                        Attr rowIndex = document.createAttribute("rowIndex");
-                        rowIndex.setValue(String.valueOf(rowNo));
-                        row.setAttributeNode(rowIndex);
+                        Element row = null;
                         for (Relationship relationship : itr.getValue().getRelationships()) {
                             if (relationship.getType().toString().equals("CHILD")) {
                                 for (String cellId : relationship.getIds()) {
                                     Block cBlock = cellMap.get(cellId);
                                     String text = getText(cBlock, blockMap);
                                     if (cBlock.getRowIndex() != rowNo) {
-                                        Element nextRow = document.createElement("row");
-                                        table.appendChild(nextRow);
-                                        Attr nextRowIndex = document.createAttribute("rowIndex");
-                                        rowIndex.setValue(String.valueOf(rowNo));
-                                        nextRow.setAttributeNode(nextRowIndex);
+                                        row = document.createElement("row");
+                                        table.appendChild(row);
+                                        Attr rowIndex = document.createAttribute("rowIndex");
+                                        rowIndex.setValue(String.valueOf(rowNo + 1));
+                                        row.setAttributeNode(rowIndex);
                                         rowNo = cBlock.getRowIndex();
                                     }
-                                    String col = (cBlock.getEntityTypes() == null
-                                            || cBlock.getEntityTypes().toString() == "COLUMN_HEADER") ? "columnHeader"
-                                                    : "column";
+                                    String col = (cBlock.getEntityTypes() != null
+                                            && cBlock.getEntityTypes().toString().equals(
+                                                    "[COLUMN_HEADER]")) ? "columnHeader"
+                                                            : "column";
                                     Element column = document.createElement(col);
                                     column.appendChild(document.createTextNode(text));
                                     row.appendChild(column);
